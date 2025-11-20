@@ -53,10 +53,10 @@ function generarQR() {
 
   // Los datos que estarán dentro del QR
   let texto = 
-    "📦 OBJETO PERDIDO\n" +
-    "👤 Dueño: " + nombre + "\n" +
-    "📞 Teléfono: " + telefono + "\n" +
-    "🔎 Objeto: " + objeto;
+    "OBJETO PERDIDO\n" +
+    "Dueño: " + nombre + "\n" +
+    "Teléfono: " + telefono + "\n" +
+    "Objeto: " + objeto;
 
   let qr = new QRious({
     element: document.getElementById("qr"),
@@ -68,5 +68,6 @@ function generarQR() {
 
 </body>
 </html>
+
 
 
