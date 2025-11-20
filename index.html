@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ENCUENTRA TU OBJETO</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 30px; background: #f0f8ff; }
+  h1 { color: #2c3e50; text-align: center; }
+  form { max-width: 500px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px #aaa; }
+  input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+  button { width: 100%; padding: 12px; border: none; background: #27ae60; color: white; border-radius: 5px; cursor: pointer; font-size: 16px; }
+  button:hover { background: #1e8449; }
+  .user-card { background: #fff; padding: 15px; margin: 15px auto; border-radius: 10px; max-width: 500px; box-shadow: 0 0 5px #888; }
+  h2 { text-align: center; color: #2c3e50; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<h1>ENCUENTRA TU OBJETO</h1>
+
+<form id="registroForm">
+  <label>Nombre:</label>
+  <input type="text" id="nombre" placeholder="Ingresa tu nombre" required>
+
+  <label>Teléfono:</label>
+  <input type="text" id="telefono" placeholder="Ingresa tu teléfono" required>
+
+  <label>Ciudad:</label>
+  <input type="text" id="ciudad" placeholder="Ingresa tu ciudad" required>
+
+  <label>Mensaje:</label>
+  <textarea id="mensaje" rows="3" placeholder="Por favor devuélveme mi objeto 😊"></textarea>
+
+  <button type="submit">Guardar Datos</button>
+</form>
+
+<h2>Datos Guardados</h2>
+<div id="listaUsuarios"></div>
+
+<script>
+// Base de datos simulada con localStorage
+let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+const form = document.getElementById('registroForm');
+const lista = document.getElementById('listaUsuarios');
+
+// Función para mostrar usuarios
+function mostrarUsuarios() {
+    lista.innerHTML = '';
+    usuarios.forEach((user, index) => {
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+            <strong>Nombre:</strong> ${user.nombre}<br>
+            <strong>Teléfono:</strong> ${user.telefono}<br>
+            <strong>Ciudad:</strong> ${user.ciudad}<br>
+            <strong>Mensaje:</strong> ${user.mensaje || 'Por favor devuélveme mi objeto 😊'}
+        `;
+        lista.appendChild(div);
+    });
+}
+
+// Guardar usuario
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const nuevoUsuario = {
+        nombre: document.getElementById('nombre').value,
+        telefono: document.getElementById('telefono').value,
+        ciudad: document.getElementById('ciudad').value,
+        mensaje: document.getElementById('mensaje').value
+    };
+    usuarios.push(nuevoUsuario);
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    form.reset();
+    mostrarUsuarios();
+});
+
+// Mostrar usuarios al cargar la página
+mostrarUsuarios();
+</script>
+
+</body>
+</html>
