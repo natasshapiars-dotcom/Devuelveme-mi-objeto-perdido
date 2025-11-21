@@ -1,73 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<title>QR - Objeto Perdido</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
-<style>
-  body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-  h1 { text-align: center; }
-  .card {
-    background: white; padding: 20px; border-radius: 10px;
-    max-width: 400px; margin: auto; box-shadow: 0 0 10px #ccc;
-  }
-  label { display: block; margin-top: 10px; font-weight: bold; }
-  input {
-    width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px;
-    border: 1px solid #aaa;
-  }
-  button {
-    width: 100%; padding: 10px; margin-top: 15px;
-    background: #007bff; color: white; border: none; border-radius: 5px;
-    cursor: pointer; font-size: 16px;
-  }
-  #qr { display: block; margin: 20px auto; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devuélveme mi Objeto Perdido - Llavero Universal</title>
+    <style>
+        /* Estilos CSS para el diseño */
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; line-height: 1.6; }
+        input, button { display: block; width: 100%; padding: 12px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-size: 1em; }
+        button:hover { background-color: #0056b3; }
+        h1, h2 { color: #333; }
+        /* Estilos para mensajes de estado */
+        .mensaje { padding: 15px; border-radius: 5px; margin-top: 20px; display: none; }
+        .exito { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .datos-encontrados { border: 2px solid #007bff; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    </style>
 </head>
 <body>
 
-<h1>Generar QR - Objeto Perdido</h1>
+    <header>
+        <h1>🔑 Llavero Universal - Sistema EPT</h1>
+    </header>
 
-<div class="card">
-  <label>Nombre:</label>
-  <input id="nombre" type="text">
+    <main id="appContainer">
+        <p>Cargando...</p>
+    </main>
+    
+    <script>
+        // 🚨 MUY IMPORTANTE: PEGA AQUÍ LA URL COMPLETA DE TU GOOGLE APPS SCRIPT
+        const APPS_SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
 
-  <label>Teléfono:</label>
-  <input id="telefono" type="text">
+        const appContainer = document.getElementById('appContainer');
 
-  <label>Descripción del objeto:</label>
-  <input id="objeto" type="text">
+        // --- FUNCIONES DE UTILIDAD ---
+        
+        function mostrarMensaje(tipo, texto) {
+            let mensaje = document.createElement('div');
+            mensaje.className = `mensaje ${tipo}`;
+            mensaje.textContent = texto;
+            appContainer.appendChild(mensaje);
+            if (tipo === 'exito') {
+                setTimeout(() => mensaje.remove(), 5000);
+            }
+        }
 
-  <button onclick="generarQR()">Generar QR</button>
+        // --- FUNCIÓN DE REGISTRO (POST) ---
 
-  <canvas id="qr"></canvas>
-</div>
+        function renderRegistroForm() {
+            appContainer.innerHTML = `
+                <h2>1. Registra tu Llavero (Para el dueño)</h2>
+                <p>Ingresa el código único de tu llavero y tus datos de contacto.</p>
+                <form id="registroForm">
+                    <input type="text" id="codigo" placeholder="Código Único del Llavero" required>
+                    <input type="text" id="nombre" placeholder="Tu Nombre Completo" required>
+                    <input type="text" id="telefono" placeholder="Tu Teléfono de Contacto" required>
+                    <input type="text" id="objeto" placeholder="¿Qué objeto protegerá? (Ej: Llaves de casa)" required>
+                    <button type="submit">Guardar mis Datos</button>
+                </form>
+            `;
+            
+            document.getElementById('registroForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = e.target;
+                
+                const data = {
+                    codigo: document.getElementById('codigo').value,
+                    nombre: document.getElementById('nombre').value,
+                    telefono: document.getElementById('telefono').value,
+                    objeto: document.getElementById('objeto').value
+                };
 
-<script>
-function generarQR() {
-  let nombre = document.getElementById("nombre").value;
-  let telefono = document.getElementById("telefono").value;
-  let objeto = document.getElementById("objeto").value;
+                // Envío de datos al Apps Script (usando POST)
+                fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if (resp.status === 'ok') {
+                        mostrarMensaje('exito', '✅ ¡Datos guardados con éxito! Tu llavero está activo.');
+                        form.reset();
+                    } else {
+                        mostrarMensaje('error', '❌ Error al guardar datos. Revisa la consola para más detalles.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error de red o servidor:', err);
+                    mostrarMensaje('error', '❌ Hubo un problema de conexión. Intenta de nuevo.');
+                });
+            });
+        }
 
-  // Los datos que estarán dentro del QR
-  let texto = 
-    "OBJETO PERDIDO\n" +
-    "Dueño: " + nombre + "\n" +
-    "Teléfono: " + telefono + "\n" +
-    "Objeto: " + objeto;
+        // --- FUNCIÓN DE BÚSQUEDA (GET) ---
 
-  let qr = new QRious({
-    element: document.getElementById("qr"),
-    size: 250,
-    value: texto
-  });
-}
-</script>
+        function buscarDatos(codigo) {
+            appContainer.innerHTML = `
+                <h2>2. Objeto Encontrado</h2>
+                <p>Buscando datos del dueño para el código: <strong>${codigo}</strong>...</p>
+            `;
 
+            // Envío de solicitud al Apps Script (usando GET)
+            fetch(`${APPS_SCRIPT_URL}?codigo=${encodeURIComponent(codigo)}`)
+                .then(res => res.json())
+                .then(resp => {
+                    appContainer.innerHTML = ''; 
+
+                    if (resp.nombre) {
+                        // Datos encontrados
+                        appContainer.innerHTML = `
+                            <h2>🎉 ¡Dueño Encontrado!</h2>
+                            <div class="datos-encontrados">
+                                <h3>Se ha encontrado el objeto: ${resp.objeto || 'No especificado'}</h3>
+                                <p><strong>Código de Llavero:</strong> ${resp.codigo}</p>
+                                <hr>
+                                <h4>Información de Contacto del Dueño:</h4>
+                                <p><strong>Nombre:</strong> ${resp.nombre}</p>
+                                <p><strong>Teléfono:</strong> <a href="tel:${resp.telefono}">${resp.telefono}</a></p>
+                                <p>Por favor, usa este teléfono para contactar al dueño y devolver el objeto.</p>
+                            </div>
+                        `;
+                    } else {
+                        // Código no encontrado o error
+                        appContainer.innerHTML = `
+                            <h2>🤔 Código no encontrado</h2>
+                            <p>El código <strong>${codigo}</strong> no está registrado o no se encontraron datos.</p>
+                            <p>Si eres el dueño, por favor <a href="./">haz clic aquí para registrarte</a>.</p>
+                        `;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error de red o servidor:', err);
+                    mostrarMensaje('error', '❌ No se pudo conectar con el servidor para buscar los datos.');
+                });
+        }
+
+
+        // --- LÓGICA PRINCIPAL: Decide qué mostrar ---
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const codigoLlavero = urlParams.get('codigo');
+
+        if (codigoLlavero && codigoLlavero.trim() !== '') {
+            // Caso 1: Hay un código en la URL (alguien escaneó el QR)
+            buscarDatos(codigoLlavero);
+        } else {
+            // Caso 2: No hay código en la URL (es el dueño que quiere registrarse)
+            renderRegistroForm();
+        }
+
+    </script>
 </body>
 </html>
-
 
 
